@@ -45,7 +45,7 @@ contract McpProvider is Ownable {
 
     AggregatorV3Interface internal priceFeed;
 
-    uint256 public usdLicenseFee = 100 * 10 ** 18; // $100 license (18 decimals)
+    uint256 public usdLicenseFee = 10 * 10 ** 18; // $10 license (18 decimals)
 
     constructor(address _priceFeed) {
         priceFeed = AggregatorV3Interface(_priceFeed);
@@ -62,7 +62,7 @@ contract McpProvider is Ownable {
         string memory _url
     ) external payable {
         uint256 requiredAvax = getLicenseFeeInAvax();
-        require(msg.value >= requiredAvax, 'Less than $100 worth of AVAX sent');
+        require(msg.value >= requiredAvax, 'Less than $10 worth of AVAX sent');
 
         uint256 nonceToUse = globalProviderNonce++;
         licenses[nonceToUse] = License({
