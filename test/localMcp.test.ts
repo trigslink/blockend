@@ -18,13 +18,13 @@ describe('MCP Integration Test', function () {
         const McpConsumer = await hre.ethers.getContractFactory('McpConsumer')
         const consumer = await McpConsumer.deploy(mockFeed, provider)
 
-        // 🪪 Register MCP License (with 100 AVAX/USD fee)
+        // 🪪 Register MCP License (with AVAX/USD fee)
         const requiredAvax = await provider.getLicenseFeeInAvax()
         await provider
             .connect(owner)
             .registerMcp(
                 'Test MCP',
-                hre.ethers.parseUnits('100', 18),
+                hre.ethers.parseUnits('10', 18),
                 'Test Description',
                 'localhost/test',
                 { value: requiredAvax },
@@ -175,7 +175,7 @@ describe('MCP Integration Test', function () {
             .connect(owner)
             .registerMcp(
                 'Service A',
-                hre.ethers.parseUnits('100', 18),
+                hre.ethers.parseUnits('10', 18),
                 'Desc A',
                 'https://service-a.com',
                 { value: await provider.getLicenseFeeInAvax() },
@@ -192,7 +192,7 @@ describe('MCP Integration Test', function () {
             .connect(owner)
             .registerMcp(
                 'Service B',
-                hre.ethers.parseUnits('100', 18),
+                hre.ethers.parseUnits('10', 18),
                 'Desc B',
                 'https://service-b.com',
                 { value: await provider.getLicenseFeeInAvax() },
@@ -227,7 +227,7 @@ describe('MCP Integration Test', function () {
             .connect(owner)
             .registerMcp(
                 'Service A',
-                hre.ethers.parseUnits('100', 18),
+                hre.ethers.parseUnits('10', 18),
                 'Desc A',
                 'https://service-a.com',
                 { value: await provider.getLicenseFeeInAvax() },
@@ -244,7 +244,7 @@ describe('MCP Integration Test', function () {
             .connect(owner)
             .registerMcp(
                 'Service B',
-                hre.ethers.parseUnits('100', 18),
+                hre.ethers.parseUnits('10', 18),
                 'Desc B',
                 'https://service-b.com',
                 { value: await provider.getLicenseFeeInAvax() },
@@ -307,7 +307,7 @@ describe('MCP Integration Test', function () {
                 .connect(owner)
                 .registerMcp(
                     name,
-                    hre.ethers.parseUnits('100', 18),
+                    hre.ethers.parseUnits('10', 18),
                     `${name} desc`,
                     `https://${name.toLowerCase()}.com`,
                     { value: licenseFee },
