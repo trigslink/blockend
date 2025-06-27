@@ -149,21 +149,6 @@ event McpRequestEnded(address indexed requester, string httpsURI, uint256 timest
 
 ---
 
-## 🧪 Testing
-
-```bash
-npx hardhat test
-```
-
-Unit tests should:
-
-- Register multiple providers
-- Prevent duplicate logic (if added)
-- Emit request events
-- Cross-reference valid providers
-
----
-
 ## 🛡 Security Notes
 
 - Only `msg.sender` can register
@@ -182,7 +167,15 @@ Unit tests should:
 
 ---
 
-# This document provides deployment instructions (internal use)
+## 🧪 Testing
+
+Prior to deploying, it is crucial to check all tests pass
+
+```bash
+npx hardhat test
+```
+
+# This document provides deployment instructions and automation registration
 
 ## 🏂 Fuji Contract Deployment (Hardhat)
 
