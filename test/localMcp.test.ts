@@ -357,4 +357,24 @@ describe('MCP Integration Test', function () {
         expect(userEnd).to.be.gt(userStart - hre.ethers.parseEther('0.05')) // allow for gas loss
         expect(otherEnd).to.be.gt(otherStart - hre.ethers.parseEther('0.05'))
     })
+
+    it('should revert if upkeep is called before GRACE_PERIOD has passed', async () => {
+        const { user, consumer, provider } = await loadFixture(deployMcpFixture)
+
+        const license = await provider.licenses(0)
+        const priceUsd = license.usdPriceForConsumerMonth
+        const latestPrice = await consumer.getLatestAvaxUsdPrice()
+        const requiredAvax = (priceUsd * BigInt(10 ** 8)) / latestPrice
+
+        await consumer.connect(user).subscribeToMcp(0, { value: requiredAvax })
+
+        // 🛠️ Manually encode performData (since checkUpkeep will return 0x)
+        const performData = hre.ethers.AbiCoder.defaultAbiCoder().encode(
+            ['address', 'uint256'],
+            [user.address, 0],
+        )
+
+        // ❌ Attempt to perform upkeep anyway (should fail due to time not yet passed)
+        await expect(consumer.performUpkeep(performData)).to.be.revertedWith('Not expired yet')
+    })
 })

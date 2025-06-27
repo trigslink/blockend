@@ -22,6 +22,12 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
     /// @notice Emitted when a subscription is resolved (expired or refunded)
     event SubscriptionResolved(address indexed consumer, uint256 indexed subId, SubStatus status);
 
+    /// @notice Emitted whenever a subscription is resolved via Chainlink Automation
+    /// @param user The address of the subscriber
+    /// @param index The index of the subscription
+    /// @param timestamp The time when the upkeep executed
+    event MCPUpdateExecuted(address indexed user, uint256 index, uint256 timestamp);
+
     /// @notice Status lifecycle of a subscription
     enum SubStatus {
         Active,
@@ -54,7 +60,7 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
     IMcpProvider public mcpProvider;
 
     /// @notice Grace period before subscription is eligible for upkeep (default 30 days)
-    uint256 public GRACE_PERIOD = 30 days;
+    uint256 public GRACE_PERIOD = 30 days; // Hardcoded for simplicity, down the line should be configurable by MPC register
 
     /// @notice Initializes the MCP consumer
     /// @param _provider The address of the MCP provider contract
@@ -67,9 +73,6 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
     /// @notice Subscribes to a given MCP license
     /// @param _providerNonce The nonce of the license to subscribe to
     /// @dev Subscriptions are priced in USD, paid in AVAX using current feed rate
-
-    // TODO: require (_providerNonce) to exist!
-
     function subscribeToMcp(uint256 _providerNonce) external payable {
         if (!isKnownConsumer[msg.sender]) {
             isKnownConsumer[msg.sender] = true;
@@ -106,6 +109,8 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
         );
     }
 
+    /// @notice Refunds users if a provider is penalized (by admin)
+    /// @param _providerNonce The nonce of the provider being penalized
     function penalizeProvider(uint256 _providerNonce) external onlyOwner {
         for (uint256 u = 0; u < allConsumers.length; u++) {
             address consumer = allConsumers[u];
@@ -124,8 +129,9 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
         }
     }
 
-    /// @notice Withdraw AVAX from the contract,
+    /// @notice Withdraw AVAX from the contract
     /// @dev For testing purposes and funds rescue only, will be removed in future
+    /// @param to The recipient of the withdrawn AVAX
     function withdrawAvax(address payable to) external onlyOwner {
         uint256 balance = address(this).balance;
         require(balance > 0, 'Nothing to withdraw');
@@ -137,7 +143,7 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
     /// @return upkeepNeeded True if any sub has expired, performData with user/index
     function checkUpkeep(
         bytes calldata checkData
-    ) external view returns (bool upkeepNeeded, bytes memory performData) {
+    ) external view override returns (bool upkeepNeeded, bytes memory performData) {
         for (uint256 u = 0; u < allConsumers.length; u++) {
             address user = allConsumers[u];
             Subscription[] storage subs = userSubscriptions[user];
@@ -155,8 +161,9 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
         return (false, '');
     }
 
-    /// @notice Chainlink Automation perform function that resolves expired subscriptions
-    /// @param performData ABI-encoded (address user, uint256 index)
+    /// @notice Called by Chainlink Automation to resolve an expired subscription
+    /// @dev Decodes performData and completes the subscription if expired
+    /// @param performData ABI-encoded (user address, subscription index)
     function performUpkeep(bytes calldata performData) external override {
         (address user, uint256 index) = abi.decode(performData, (address, uint256));
         Subscription storage sub = userSubscriptions[user][index];
@@ -166,12 +173,17 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
 
         sub.status = SubStatus.Completed;
         emit SubscriptionResolved(user, index, SubStatus.Completed);
+
+        /// @dev Emit event for external monitoring/debugging
+        emit MCPUpdateExecuted(user, index, block.timestamp);
     }
 
+    /// @notice Returns active subscriptions for a user still within the grace period
+    /// @param _consumer The user's address
+    /// @return A memory array of eligible subscriptions
     function getConsumerMcps(address _consumer) public view returns (Subscription[] memory) {
         Subscription[] storage allSubs = userSubscriptions[_consumer];
 
-        // First pass: count how many are still active and within GRACE_PERIOD
         uint256 activeCount = 0;
         for (uint256 i = 0; i < allSubs.length; i++) {
             if (
@@ -182,7 +194,6 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
             }
         }
 
-        // Second pass: copy those to a new memory array
         Subscription[] memory result = new Subscription[](activeCount);
         uint256 j = 0;
         for (uint256 i = 0; i < allSubs.length; i++) {
