@@ -174,12 +174,38 @@ Unit tests should:
 
 ## 📚 Future Work
 
-- Cross-chain support via Chainlink CCIP
-- Inspector verification system (current model suffers from trust based assumptions)
-- Reputation system for providers
+- Provider reputation system
 - SLA enforcement
-- Custom pricing models
+- Onchain hash-based verification system with Chainlink Functions (current model suffers from trust based assumptions)
+- AVAX Subnet-ification of same MCP models for high throughput
+- Cross-chain support via Chainlink CCIP
 
 ---
 
-For now, this is the **minimum viable project** to anchor the MCP marketplace.
+# This document provides deployment instructions (internal use)
+
+## 🏂 Fuji Contract Deployment (Hardhat)
+
+```bash
+npx hardhat ignition deploy ignition/modules/DeployMcpSystem.ts --network fuji --reset
+```
+
+## 🏂 Fuji Contract Verify (Provider) (Hardhat)
+
+```bash
+npx hardhat verify --network fuji PROVIDER_CONTRACT_ADDRESS "0x5498BB86BC934c8D34FDA08E81D444153d0D06aD"
+```
+
+## 🏂 Fuji Contract Verify (Consumer) (Hardhat)
+
+```bash
+npx hardhat verify --network fuji CONSUMER_CONTRACT_ADDRESS "0x5498BB86BC934c8D34FDA08E81D444153d0D06aD" "PROVIDER_CONTRACT_ADDRESS"
+```
+
+## ⚙️ Upkeep Automation Registration
+
+![automation-step-1](../../assets/cl-automation-1.png)
+
+![automation-step-2](../../assets/cl-automation-2.png)
+
+![automation-step-3](../../assets/cl-automation-3.png)
