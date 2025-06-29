@@ -21,14 +21,12 @@ We believe this service will be valuable for the Blockchain x AI ecosystem, enab
 
 # MCP examples (clickable links)
 
-<a href="https://github.com/BlindVibeDev/CoinGeckoMCP" target="_blank">
-  <img src="./assets/CoinGecko_logo.png" alt="Coingecko_Logo" width="100"/>
+<a href="https://github.com/royyannick/awesome-blockchain-mcps" target="_blank">
+Some examples of defi specific MCPs
 </a>
-<a href="https://hub.docker.com/r/mcp/notion" target="_blank">
-  <img src="./assets/Notion_app_logo.png" alt="Notion_Logo" width="100"/>
-</a>
-<a href="https://hub.docker.com/r/mcp/postgres" target="_blank">
-  <img src="./assets/Postgresql_elephant.svg.png" alt="Postgres_Logo" width="100"/>
+
+<a href="https://hub.docker.com/u/mcp" target="_blank">
+Examples of Web2 MCPs
 </a>
 
 ## 🧱 Architecture Overview
@@ -39,49 +37,25 @@ We believe this service will be valuable for the Blockchain x AI ecosystem, enab
 
 ## 🔩 Component Breakdown
 
-### 🔵 McpProvider.sol
+### 🔵 `McpProvider.sol`
 
-- Provider-side registry of MCP service metadata.
-- Stores `httpsURI` and `registeredAt` per submission.
-- Uses `msg.sender` as the primary identity.
+- Registers onchain metadata for AI service providers.
+- Each MCP is mapped by a unique `providerNonce`, auto-incremented per submission.
+- Metadata includes the wallet address, a URL, the USD price, and a description.
 
-```solidity
-struct McpMetadata {
-    address owner;
-    string httpsURI;
-    uint256 registeredAt;
-}
-```
+### 🟢 `McpConsumer.sol`
 
-### 🟢 McpConsumer.sol
+- Enables users to subscribe to registered MCPs by paying in AVAX.
+- Converts USD to AVAX via Chainlink price feed.
+- Subscripes to an MCP feed for 30 days.
 
-- Queries the provider contract for valid `httpsURI`.
-- Emits an `McpRequested` event to signal off-chain routing.
-- Validates that the provider exists before emitting request.
-
----
-
-## 🛠 Getting Started
-
-### Prerequisites
+## 🧪 tests
 
 ```bash
-# Hardhat Project Init
-npm install --save-dev hardhat
-npx hardhat
+npx hardhat test
 ```
 
-### File Structure
-
-```
-contracts/
-├── McpProvider.sol
-└── McpConsumer.sol
-```
-
----
-
-## 🚀 Local Contract Deployment (Hardhat)
+## 🚀 Local Contract Deployment
 
 Ensure you are in ./blockend for deploys
 
@@ -95,112 +69,11 @@ npx hardhat node
 npx hardhat ignition deploy ignition/modules/McpProvider.ts --network localhost
 ```
 
-## 🏂 Fuji Contract Deployment (Hardhat)
-
-```bash
-npx hardhat ignition deploy ignition/modules/DeployMcpSystem.ts --network fuji --reset
-```
-
-## 🏂 Fuji Contract Verify (Provider) (Hardhat)
-
-```bash
-npx hardhat verify --network fuji DEPLOYED_CONTRACT_ADDRESS "0x5498BB86BC934c8D34FDA08E81D444153d0D06aD"
-```
-
-## 🏂 Fuji Contract Verify (Consumer) (Hardhat)
-
-```bash
-npx hardhat verify --network fuji DEPLOYED_CONTRACT_ADDRESS "0x5498BB86BC934c8D34FDA08E81D444153d0D06aD" "PROVIDER_CONTRACT_ADDRESS"
-```
-
----
-
-## 🔌 Provider Functions
-
-| Function                              | Description                                |
-| ------------------------------------- | ------------------------------------------ |
-| `registerProvider(string httpsURI)`   | Register a service                         |
-| `deregisterProvider(string httpsURI)` | Stop providing services for a specific MCP |
-
----
-
-## 📡 Consumer Functions
-
-| Function                                  | Description                        |
-| ----------------------------------------- | ---------------------------------- | ------------------------------ |
-| `requestMcpSubscription(string httpsURI)` | Subscribe to a service for 30 days |
-| `endMcpSubscription(string httpsURI)`     | Ends the subscription              | Called by Chainlink Automation |
-
----
-
-## 📖 Events
-
-```solidity
-// In McpProvider.sol
-event RegistrationFailed(address indexed provider, string httpsURI, uint256 timestamp);
-event ProviderRegistered(address indexed provider, string httpsURI, uint256 timestamp);
-event ProviderDeregistered(address indexed provider, string httpsURI, uint256 timestamp);
-
-// In McpConsumer.sol
-event RequestFailed(address indexed requester, string httpsURI, uint256 timestamp);
-event McpRequested(address indexed requester, string httpsURI, uint256 timestamp);
-event McpRequestEnded(address indexed requester, string httpsURI, uint256 timestamp);
-```
-
----
-
-## 🛡 Security Notes
-
-- Only `msg.sender` can register
-- Optionally add stake + slashing
-- Consumer checks must prevent spoofed requests
-
----
+[For instructions regarding the live deploy to Fuji, click here.](./contracts/README.md).
 
 ## 📚 Future Work
 
+- SLA enforcement, uptime monitoring with chainlink functions
 - Provider reputation system
-- SLA enforcement
-- Onchain hash-based verification system with Chainlink Functions (current model suffers from trust based assumptions)
 - AVAX Subnet-ification of same MCP models for high throughput
 - Cross-chain support via Chainlink CCIP
-
----
-
-## 🧪 Testing
-
-Prior to deploying, it is crucial to check all tests pass
-
-```bash
-npx hardhat test
-```
-
-# This document provides deployment instructions and automation registration
-
-## 🏂 Fuji Contract Deployment (Hardhat)
-
-```bash
-npx hardhat ignition deploy ignition/modules/DeployMcpSystem.ts --network fuji --reset
-```
-
-## 🏂 Fuji Contract Verify (Provider) (Hardhat)
-
-```bash
-npx hardhat verify --network fuji PROVIDER_CONTRACT_ADDRESS "0x5498BB86BC934c8D34FDA08E81D444153d0D06aD"
-```
-
-## 🏂 Fuji Contract Verify (Consumer) (Hardhat)
-
-```bash
-npx hardhat verify --network fuji CONSUMER_CONTRACT_ADDRESS "0x5498BB86BC934c8D34FDA08E81D444153d0D06aD" "PROVIDER_CONTRACT_ADDRESS"
-```
-
-## ⚙️ Upkeep Automation Registration
-
-This step is as crucial as the deploy itself, make sure to register exactly step by step as described below.
-
-![automation-step-1](./assets/cl-automation-1.png)
-
-![automation-step-2](./assets/cl-automation-2.png)
-
-![automation-step-3](./assets/cl-automation-3.png)
