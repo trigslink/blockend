@@ -26,7 +26,6 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
     /// @param user The address of the subscriber
     /// @param index The index of the subscription
     /// @param timestamp The time when the upkeep executed
-    event MCPUpdateExecuted(address indexed user, uint256 index, uint256 timestamp);
 
     /// @notice Status lifecycle of a subscription
     enum SubStatus {
@@ -175,7 +174,6 @@ contract McpConsumer is Ownable, AutomationCompatibleInterface {
         emit SubscriptionResolved(user, index, SubStatus.Completed);
 
         /// @dev Emit event for external monitoring/debugging
-        emit MCPUpdateExecuted(user, index, block.timestamp);
     }
 
     /// @notice Returns active subscriptions for a user still within the grace period
