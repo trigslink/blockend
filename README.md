@@ -197,8 +197,10 @@ npx hardhat verify --network fuji CONSUMER_CONTRACT_ADDRESS "0x5498BB86BC934c8D3
 
 ## ⚙️ Upkeep Automation Registration
 
-![automation-step-1](../../assets/cl-automation-1.png)
+This step is as crucial as the deploy itself, make sure to register exactly step by step as described below.
 
-![automation-step-2](../../assets/cl-automation-2.png)
+![automation-step-1](./assets/cl-automation-1.png)
 
-![automation-step-3](../../assets/cl-automation-3.png)
+![automation-step-2](./assets/cl-automation-2.png)
+
+![automation-step-3](./assets/cl-automation-3.png)
